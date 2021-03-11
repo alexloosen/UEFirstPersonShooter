@@ -3,12 +3,13 @@
 #include "MyProjectCPPProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 
 AMyProjectCPPProjectile::AMyProjectCPPProjectile() 
 {
 	// Use a sphere as a simple collision representation
-	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
-	CollisionComp->InitSphereRadius(1.0f);
+	CollisionComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
+	//CollisionComp->InitSphereRadius(1.0f);
 	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
 	CollisionComp->OnComponentHit.AddDynamic(this, &AMyProjectCPPProjectile::OnHit);		// set up a notification for when this component hits something blocking
 	CollisionComp->SetEnableGravity(false);
