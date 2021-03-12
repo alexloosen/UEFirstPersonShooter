@@ -9,8 +9,6 @@
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
-#include "MotionControllerComponent.h"
-#include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "DrawDebugHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -60,27 +58,6 @@ AMyProjectCPPCharacter::AMyProjectCPPCharacter()
 	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P, FP_Gun, and VR_Gun 
 	// are set in the derived blueprint asset named MyCharacter to avoid direct content references in C++.
 
-	// Create VR Controllers.
-	R_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("R_MotionController"));
-	R_MotionController->MotionSource = FXRMotionControllerBase::RightHandSourceId;
-	R_MotionController->SetupAttachment(RootComponent);
-	L_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("L_MotionController"));
-	L_MotionController->SetupAttachment(RootComponent);
-
-	// Create a gun and attach it to the right-hand VR controller.
-	// Create a gun mesh component
-	VR_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("VR_Gun"));
-	VR_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
-	VR_Gun->bCastDynamicShadow = false;
-	VR_Gun->CastShadow = false;
-	VR_Gun->SetupAttachment(R_MotionController);
-	VR_Gun->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-
-	VR_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("VR_MuzzleLocation"));
-	VR_MuzzleLocation->SetupAttachment(VR_Gun);
-	VR_MuzzleLocation->SetRelativeLocation(FVector(0.000004, 53.999992, 10.000000));
-	VR_MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));		// Counteract the rotation of the VR gun model.
-
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
 
@@ -106,16 +83,6 @@ void AMyProjectCPPCharacter::BeginPlay()
 	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
-	if (bUsingMotionControllers)
-	{
-		VR_Gun->SetHiddenInGame(false, true);
-		Mesh1P->SetHiddenInGame(true, true);
-	}
-	else
-	{
-		VR_Gun->SetHiddenInGame(true, true);
-		Mesh1P->SetHiddenInGame(false, true);
-	}
 
 	PitchMin = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMin;
 	PitchMax = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax;
@@ -131,11 +98,11 @@ void AMyProjectCPPCharacter::Tick(float DeltaSeconds)
 
 	//DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 1, 0, 1);
 
-	if (!bHoldingItem)
+	if(!bHoldingItem)
 	{
-		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, DefaultComponentQueryParams, DefaultResponseParams))
+		if(GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, DefaultComponentQueryParams, DefaultResponseParams))
 		{
-			if (Hit.GetActor()->GetClass()->IsChildOf(APickUp::StaticClass()))
+			if(Hit.GetActor()->GetClass()->IsChildOf(APickUp::StaticClass()))
 			{
 				CurrentItem = Cast<APickUp>(Hit.GetActor());
 			}
@@ -146,9 +113,9 @@ void AMyProjectCPPCharacter::Tick(float DeltaSeconds)
 		}
 	}
 
-	if (bInspecting)
+	if(bInspecting)
 	{
-		if (bHoldingItem)
+		if(bHoldingItem)
 		{
 			FirstPersonCameraComponent->SetFieldOfView(FMath::Lerp(FirstPersonCameraComponent->FieldOfView, 90.0f, 0.1f));
 			HoldingComponent->SetRelativeLocation(FVector(0.0f, 50.0f, 50.0f));
@@ -201,11 +168,6 @@ void AMyProjectCPPCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Inspect", IE_Pressed, this, &AMyProjectCPPCharacter::OnInspect);
 	PlayerInputComponent->BindAction("Inspect", IE_Released, this, &AMyProjectCPPCharacter::OnInspectReleased);
 
-	// Enable touchscreen input
-	EnableTouchscreenMovement(PlayerInputComponent);
-
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AMyProjectCPPCharacter::OnResetVR);
-
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMyProjectCPPCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMyProjectCPPCharacter::MoveRight);
@@ -222,45 +184,50 @@ void AMyProjectCPPCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 void AMyProjectCPPCharacter::OnFire()
 {
 	// try and fire a projectile
-	if (ProjectileClass != nullptr)
+	if(ProjectileClass != nullptr)
 	{
 		UWorld* const World = GetWorld();
-		if (World != nullptr)
+		if(World != nullptr)
 		{
-			if (bUsingMotionControllers)
+//			if(weapons.IsValidIndex(currentWeapon))
+			if(weapon)
 			{
-				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
-				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-				World->SpawnActor<AMyProjectCPPProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
-			}
-			else
-			{
-				const FRotator SpawnRotation = GetControlRotation();
-				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-				const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+				//if(weapons[currentWeapon]->ammo > 0)
+				if(weapon->ammo > 0)
+				{
+					const FRotator SpawnRotation = GetControlRotation();
+					// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+					const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
 
-				//Set Spawn Collision Handling Override
-				FActorSpawnParameters ActorSpawnParams;
-				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+					//Set Spawn Collision Handling Override
+					FActorSpawnParameters ActorSpawnParams;
+					ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
-				// spawn the projectile at the muzzle
-				World->SpawnActor<AMyProjectCPPProjectile>(ProjectileClass, SpawnLocation, SpawnRotation ,ActorSpawnParams);
+					// spawn the projectile at the muzzle
+					World->SpawnActor<AMyProjectCPPProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+					//weapons[currentWeapon]->ammo--;
+					weapon->ammo--;
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Out of ammo!"));
+				}
 			}
 		}
 	}
 
 	// try and play the sound if specified
-	if (FireSound != nullptr)
+	if(FireSound != nullptr)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 	}
 
 	// try and play a firing animation if specified
-	if (FireAnimation != nullptr)
+	if(FireAnimation != nullptr)
 	{
 		// Get the animation object for the arms mesh
 		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-		if (AnimInstance != nullptr)
+		if(AnimInstance != nullptr)
 		{
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
@@ -269,7 +236,7 @@ void AMyProjectCPPCharacter::OnFire()
 
 void AMyProjectCPPCharacter::OnAction()
 {
-	if (CurrentItem && !bInspecting)
+	if(CurrentItem && !bInspecting)
 	{
 		ToggleItemPickup();
 	}
@@ -277,7 +244,7 @@ void AMyProjectCPPCharacter::OnAction()
 
 void AMyProjectCPPCharacter::OnInspect()
 {
-	if (bHoldingItem)
+	if(bHoldingItem)
 	{
 		LastRotation = GetControlRotation();
 		ToggleMovement();
@@ -290,7 +257,7 @@ void AMyProjectCPPCharacter::OnInspect()
 
 void AMyProjectCPPCharacter::OnInspectReleased()
 {
-	if (bInspecting && bHoldingItem)
+	if(bInspecting && bHoldingItem)
 	{
 		GetController()->SetControlRotation(LastRotation);
 		GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax = PitchMax;
@@ -339,7 +306,7 @@ float AMyProjectCPPCharacter::TakeDamage(float DamageAmount, FDamageEvent const&
 		{
 			armorDamageOverlap = abs(armor - damageToArmor);
 			armor = 0;
-			
+
 			health -= armorDamageOverlap;
 			health -= damageToHealth;
 		}
@@ -365,18 +332,13 @@ float AMyProjectCPPCharacter::TakeDamage(float DamageAmount, FDamageEvent const&
 	return DamageAmount;
 }
 
-void AMyProjectCPPCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
 void AMyProjectCPPCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
-	if (TouchItem.bIsPressed == true)
+	if(TouchItem.bIsPressed == true)
 	{
 		return;
 	}
-	if ((FingerIndex == TouchItem.FingerIndex) && (TouchItem.bMoved == false))
+	if((FingerIndex == TouchItem.FingerIndex) && (TouchItem.bMoved == false))
 	{
 		OnFire();
 	}
@@ -388,7 +350,7 @@ void AMyProjectCPPCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, con
 
 void AMyProjectCPPCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
-	if (TouchItem.bIsPressed == false)
+	if(TouchItem.bIsPressed == false)
 	{
 		return;
 	}
@@ -435,7 +397,7 @@ void AMyProjectCPPCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const
 
 void AMyProjectCPPCharacter::MoveForward(float Value)
 {
-	if (Value != 0.0f && bCanMove)
+	if(Value != 0.0f && bCanMove)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
@@ -444,7 +406,7 @@ void AMyProjectCPPCharacter::MoveForward(float Value)
 
 void AMyProjectCPPCharacter::MoveRight(float Value)
 {
-	if (Value != 0.0f && bCanMove)
+	if(Value != 0.0f && bCanMove)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
@@ -461,19 +423,4 @@ void AMyProjectCPPCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
-}
-
-bool AMyProjectCPPCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)
-{
-	if (FPlatformMisc::SupportsTouchInput() || GetDefault<UInputSettings>()->bUseMouseForTouch)
-	{
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AMyProjectCPPCharacter::BeginTouch);
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Released, this, &AMyProjectCPPCharacter::EndTouch);
-
-		//Commenting this out to be more consistent with FPS BP template.
-		//PlayerInputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AMyProjectCPPCharacter::TouchUpdate);
-		return true;
-	}
-	
-	return false;
 }
