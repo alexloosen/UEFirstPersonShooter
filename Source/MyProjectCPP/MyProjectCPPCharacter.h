@@ -7,6 +7,7 @@
 #include "PickUp.h"
 #include "MyProjectCPPCharacter.generated.h"
 
+
 class UInputComponent;
 class USkeletalMeshComponent;
 class USceneComponent;
@@ -64,6 +65,8 @@ protected:
 	virtual void BeginPlay();
 	virtual void Tick(float DeltaSeconds) override;
 
+//private:
+//	void updateHealthAndArmor();
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -96,8 +99,23 @@ public:
 	UPROPERTY(EditAnywhere)
 	class APickUp* CurrentItem;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
 	float health;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
 	float armor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	float maxHealth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	float maxArmor;	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	float interpolatedHealth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	float interpolatedArmor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	float newHealthPercent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	float newArmorPercent;
 
 	bool bCanMove;
 	bool bHoldingItem;

@@ -84,8 +84,6 @@ AMyProjectCPPCharacter::AMyProjectCPPCharacter()
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
 
-	health = 100;
-	armor = 100;
 	HoldingComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HoldingComponent"));
 	FVector vec = { 50.0f, 0.0f, 0.0f };
 	HoldingComponent->SetRelativeLocation(vec);
@@ -171,6 +169,15 @@ void AMyProjectCPPCharacter::Tick(float DeltaSeconds)
 		{
 			HoldingComponent->SetRelativeLocation(FVector(0.0f, 50.0f, 0.0f));
 		}
+	}
+	// Interpolate Health
+	if(interpolatedHealth != health)
+	{
+		interpolatedHealth = FMath::FInterpTo(interpolatedHealth, health, 10.0f, DeltaSeconds);
+		newHealthPercent = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, maxHealth), FVector2D(0.0f, 1.0f), interpolatedHealth);
+
+		interpolatedArmor = FMath::FInterpTo(interpolatedArmor, armor, 10.0f, DeltaSeconds);
+		newArmorPercent = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, maxArmor), FVector2D(0.0f, 1.0f), interpolatedArmor);
 	}
 }
 
@@ -320,7 +327,6 @@ void AMyProjectCPPCharacter::ToggleItemPickup()
 
 float AMyProjectCPPCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	UE_LOG(LogTemp, Warning, TEXT("I took %i damage, OW!"), (int32)DamageAmount);
 	// Incoming damage is split 2/3 to armor, 1/3 to health
 	float damageToArmor = roundf(DamageAmount * 0.67);
 	float damageToHealth = roundf(DamageAmount * 0.33);
@@ -333,6 +339,7 @@ float AMyProjectCPPCharacter::TakeDamage(float DamageAmount, FDamageEvent const&
 		{
 			armorDamageOverlap = abs(armor - damageToArmor);
 			armor = 0;
+			
 			health -= armorDamageOverlap;
 			health -= damageToHealth;
 		}
