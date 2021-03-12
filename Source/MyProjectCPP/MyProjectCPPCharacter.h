@@ -58,6 +58,8 @@ class AMyProjectCPPCharacter : public ACharacter
 public:
 	AMyProjectCPPCharacter();
 
+	UFUNCTION(BlueprintCallable, Category = "Damage")
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 protected:
 	virtual void BeginPlay();
 	virtual void Tick(float DeltaSeconds) override;
@@ -93,6 +95,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	class APickUp* CurrentItem;
+
+	float health;
+	float armor;
 
 	bool bCanMove;
 	bool bHoldingItem;
@@ -161,7 +166,8 @@ protected:
 
 	void ToggleMovement();
 	void ToggleItemPickup();
-	
+
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;

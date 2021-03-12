@@ -84,6 +84,8 @@ AMyProjectCPPCharacter::AMyProjectCPPCharacter()
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
 
+	health = 100;
+	armor = 100;
 	HoldingComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HoldingComponent"));
 	FVector vec = { 50.0f, 0.0f, 0.0f };
 	HoldingComponent->SetRelativeLocation(vec);
@@ -98,6 +100,9 @@ void AMyProjectCPPCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	UE_LOG(LogTemp, Warning, TEXT("Starting Health: %i"), (int32)health);
+	UE_LOG(LogTemp, Warning, TEXT("Starting Armor: %i"), (int32)armor);
 
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
 	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
@@ -311,6 +316,46 @@ void AMyProjectCPPCharacter::ToggleItemPickup()
 			CurrentItem = NULL;
 		}
 	}
+}
+
+float AMyProjectCPPCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	UE_LOG(LogTemp, Warning, TEXT("I took %i damage, OW!"), (int32)DamageAmount);
+	// Incoming damage is split 2/3 to armor, 1/3 to health
+	float damageToArmor = roundf(DamageAmount * 0.67);
+	float damageToHealth = roundf(DamageAmount * 0.33);
+	float armorDamageOverlap = 0.0f;
+
+	if(armor > 0)
+	{
+		// if damage to armor is higher than player armor, set armor to 0, calculate overlap and apply overlap to health along with health damage
+		if(armor < damageToArmor)
+		{
+			armorDamageOverlap = abs(armor - damageToArmor);
+			armor = 0;
+			health -= armorDamageOverlap;
+			health -= damageToHealth;
+		}
+		// otherwise apply damage to both armor and health
+		else
+		{
+			armor -= damageToArmor;
+			health -= damageToHealth;
+		}
+	}
+	// if player has no armor, apply full damage to health
+	else
+	{
+		health -= DamageAmount;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Health: %i"), (int32)health);
+	UE_LOG(LogTemp, Warning, TEXT("Armor: %i"), (int32)armor);
+
+	if(health <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Health depleted!"));
+	}
+	return DamageAmount;
 }
 
 void AMyProjectCPPCharacter::OnResetVR()
