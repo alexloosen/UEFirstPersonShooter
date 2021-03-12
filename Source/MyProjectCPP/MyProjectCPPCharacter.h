@@ -22,18 +22,6 @@ class AMyProjectCPPCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
-	USkeletalMeshComponent* Mesh1P;
-
-	/** Gun mesh: 1st person view (seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	USkeletalMeshComponent* FP_Gun;
-
-	/** Location on gun mesh where projectiles should spawn. */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	USceneComponent* FP_MuzzleLocation;
-
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
@@ -53,6 +41,19 @@ protected:
 //private:
 //	void updateHealthAndArmor();
 public:
+
+	/** Pawn mesh: 1st person view (arms; seen only by self) */
+	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
+	USkeletalMeshComponent* Mesh1P;
+
+	/** Gun mesh: 1st person view (seen only by self) */
+	UPROPERTY(BlueprintReadWrite, Category = Mesh)
+	USkeletalMeshComponent* FP_Gun;
+
+	/** Location on gun mesh where projectiles should spawn. */
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	USceneComponent* FP_MuzzleLocation;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
@@ -66,7 +67,7 @@ public:
 	FVector GunOffset;
 
 	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, Category=Projectile)
+	UPROPERTY(BlueprintReadWrite, Category=Projectile)
 	TSubclassOf<class AMyProjectCPPProjectile> ProjectileClass;
 
 	/** Sound to play each time we fire */
@@ -119,13 +120,20 @@ public:
 	FCollisionResponseParams DefaultResponseParams;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-		//	TArray<ABaseWeapon*> weapons;
-	ABaseWeapon* weapon;
+	TArray<ABaseWeapon*> weapons;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
 	int currentWeapon;
 
 protected:
 	
+	DECLARE_DELEGATE_OneParam(weaponIndex, int32);
+
+	void SwitchToWeapon(int index);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
+	void SwitchWeaponMesh(int index);
+
 	/** Fires a projectile. */
 	void OnFire();
 

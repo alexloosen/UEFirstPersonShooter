@@ -69,6 +69,8 @@ AMyProjectCPPCharacter::AMyProjectCPPCharacter()
 	CurrentItem = NULL;
 	bCanMove = true;
 	bInspecting = false;
+
+	currentWeapon = 0;
 }
 
 void AMyProjectCPPCharacter::BeginPlay()
@@ -168,6 +170,10 @@ void AMyProjectCPPCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Inspect", IE_Pressed, this, &AMyProjectCPPCharacter::OnInspect);
 	PlayerInputComponent->BindAction("Inspect", IE_Released, this, &AMyProjectCPPCharacter::OnInspectReleased);
 
+	PlayerInputComponent->BindAction<weaponIndex>("Weapon1", IE_Pressed, this, &AMyProjectCPPCharacter::SwitchToWeapon, 0);
+	PlayerInputComponent->BindAction<weaponIndex>("Weapon2", IE_Pressed, this, &AMyProjectCPPCharacter::SwitchToWeapon, 1);
+
+
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMyProjectCPPCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMyProjectCPPCharacter::MoveRight);
@@ -181,6 +187,24 @@ void AMyProjectCPPCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AMyProjectCPPCharacter::LookUpAtRate);
 }
 
+void AMyProjectCPPCharacter::SwitchToWeapon(int index)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Switching to Weapon %i"), index);
+	switch(index)
+	{
+		case 0:
+			currentWeapon = 0;
+			SwitchWeaponMesh(index);
+			break;
+		case 1:
+			currentWeapon = 1;
+			SwitchWeaponMesh(index);
+			break;
+		default:
+			break;
+	}
+}
+
 void AMyProjectCPPCharacter::OnFire()
 {
 	// try and fire a projectile
@@ -189,11 +213,9 @@ void AMyProjectCPPCharacter::OnFire()
 		UWorld* const World = GetWorld();
 		if(World != nullptr)
 		{
-//			if(weapons.IsValidIndex(currentWeapon))
-			if(weapon)
+			if(weapons[currentWeapon])
 			{
-				//if(weapons[currentWeapon]->ammo > 0)
-				if(weapon->ammo > 0)
+				if(weapons[currentWeapon]->ammo > 0)
 				{
 					const FRotator SpawnRotation = GetControlRotation();
 					// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
@@ -205,8 +227,7 @@ void AMyProjectCPPCharacter::OnFire()
 
 					// spawn the projectile at the muzzle
 					World->SpawnActor<AMyProjectCPPProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-					//weapons[currentWeapon]->ammo--;
-					weapon->ammo--;
+					weapons[currentWeapon]->ammo--;
 				}
 				else
 				{
@@ -294,6 +315,8 @@ void AMyProjectCPPCharacter::ToggleItemPickup()
 
 float AMyProjectCPPCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	UE_LOG(LogTemp, Warning, TEXT("I'm taking damage, OW!"));
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("OUCH!"));   
 	// Incoming damage is split 2/3 to armor, 1/3 to health
 	float damageToArmor = roundf(DamageAmount * 0.67);
 	float damageToHealth = roundf(DamageAmount * 0.33);
