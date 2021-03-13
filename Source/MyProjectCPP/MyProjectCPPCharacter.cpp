@@ -45,15 +45,12 @@ AMyProjectCPPCharacter::AMyProjectCPPCharacter()
 	FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
 	FP_Gun->bCastDynamicShadow = false;
 	FP_Gun->CastShadow = false;
-	// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
+	//FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
 	FP_Gun->SetupAttachment(RootComponent);
 
 	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
 	FP_MuzzleLocation->SetupAttachment(FP_Gun);
 	FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
-
-	// Default offset from the character location for projectiles to spawn
-	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
 	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P, FP_Gun, and VR_Gun 
 	// are set in the derived blueprint asset named MyCharacter to avoid direct content references in C++.
@@ -69,6 +66,13 @@ AMyProjectCPPCharacter::AMyProjectCPPCharacter()
 	CurrentItem = NULL;
 	bCanMove = true;
 	bInspecting = false;
+
+	health = 0;
+	armor = 0;
+	interpolatedHealth = 0;
+	interpolatedArmor = 0;
+	maxHealth = 0;
+	maxArmor = 0;
 }
 
 void AMyProjectCPPCharacter::BeginPlay()
@@ -207,50 +211,22 @@ void AMyProjectCPPCharacter::SwitchToWeapon(int index)
 
 void AMyProjectCPPCharacter::OnFire()
 {
+	ABaseWeapon* weapon = weapons[currentWeapon] != nullptr ? weapons[currentWeapon] : nullptr;		
 	// try and fire a projectile
-	if(ProjectileClass != nullptr)
+	UWorld* const World = GetWorld();
+	if(World != nullptr)
 	{
-		UWorld* const World = GetWorld();
-		if(World != nullptr)
+		if(weapon != nullptr)
 		{
-			if(weapons[currentWeapon])
+			if(weapon->ammo > 0)
 			{
-				if(weapons[currentWeapon]->ammo > 0)
-				{
-					const FRotator SpawnRotation = GetControlRotation();
-					// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-					const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-
-					//Set Spawn Collision Handling Override
-					FActorSpawnParameters ActorSpawnParams;
-					ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
-					// spawn the projectile at the muzzle
-					World->SpawnActor<AMyProjectCPPProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-					weapons[currentWeapon]->ammo--;
-				}
-				else
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Out of ammo!"));
-				}
+				weapon->FireWeapon(GetWorld()->GetDeltaSeconds());
+				weapon->ammo--;
 			}
-		}
-	}
-
-	// try and play the sound if specified
-	if(FireSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	}
-
-	// try and play a firing animation if specified
-	if(FireAnimation != nullptr)
-	{
-		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-		if(AnimInstance != nullptr)
-		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Out of ammo!"));
+			}
 		}
 	}
 }

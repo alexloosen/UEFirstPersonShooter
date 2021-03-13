@@ -47,11 +47,11 @@ public:
 	USkeletalMeshComponent* Mesh1P;
 
 	/** Gun mesh: 1st person view (seen only by self) */
-	UPROPERTY(BlueprintReadWrite, Category = Mesh)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
 	USkeletalMeshComponent* FP_Gun;
 
 	/** Location on gun mesh where projectiles should spawn. */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	UPROPERTY(BlueprintReadWrite, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
@@ -61,14 +61,6 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
-
-	/** Gun muzzle's offset from the characters location */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	FVector GunOffset;
-
-	/** Projectile class to spawn */
-	UPROPERTY(BlueprintReadWrite, Category=Projectile)
-	TSubclassOf<class AMyProjectCPPProjectile> ProjectileClass;
 
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
@@ -125,6 +117,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
 	int currentWeapon;
 
+	UPROPERTY(BlueprintReadWrite)
+	FVector lineTraceInterceptionPoint;
+
+	/** Fires a projectile. */
+	UFUNCTION(BlueprintCallable)
+    void OnFire();
+
 protected:
 	
 	DECLARE_DELEGATE_OneParam(weaponIndex, int32);
@@ -133,9 +132,6 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
 	void SwitchWeaponMesh(int index);
-
-	/** Fires a projectile. */
-	void OnFire();
 
 	void OnAction();
 
@@ -192,6 +188,7 @@ protected:
 
 public:
 	/** Returns Mesh1P subobject **/
+	UFUNCTION(BlueprintCallable)
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
