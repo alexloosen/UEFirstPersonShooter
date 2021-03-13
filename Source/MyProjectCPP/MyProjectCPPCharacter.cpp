@@ -69,8 +69,6 @@ AMyProjectCPPCharacter::AMyProjectCPPCharacter()
 	CurrentItem = NULL;
 	bCanMove = true;
 	bInspecting = false;
-
-	currentWeapon = 0;
 }
 
 void AMyProjectCPPCharacter::BeginPlay()
@@ -88,6 +86,8 @@ void AMyProjectCPPCharacter::BeginPlay()
 
 	PitchMin = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMin;
 	PitchMax = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax;
+
+	SwitchToWeapon(0);
 }
 
 void AMyProjectCPPCharacter::Tick(float DeltaSeconds)
