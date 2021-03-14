@@ -40,11 +40,8 @@ void ABaseWeapon::Tick(float DeltaTime)
 	if (!readyToFire)
 	{
 		if (GetWorld()->TimeSeconds > (lastBulletFired + (1.0f / fireRate)))
-		//if (GetWorldTimerManager().GetTimerElapsed(handle) > fireRate)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Flipping ReadyToFire!"));
 			readyToFire = true;
-			//GetWorldTimerManager().SetTimer(handle, 2 * fireRate, true, 0.0f);	
 		}
 	}
 }
@@ -77,8 +74,9 @@ bool ABaseWeapon::FireWeapon()
 		if (bHasHit)
 		{
 			FHitResult result;
+			result.Item = damage;
 			Outhit.Actor->ReceiveHit(Outhit.GetComponent(), nullptr, nullptr, 0,
-			                         FVector(0, 0, 0), FVector(0, 0, 0), FVector(0, 0, 0),
+			                         FVector(0, 0, 0), FVector(0, 0, 0), FVector((float)damage, 0, 0),
 			                         result);
 			lineTraceHitLocation = Outhit.Location;
 		}
