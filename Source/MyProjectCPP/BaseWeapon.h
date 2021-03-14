@@ -60,6 +60,8 @@ public:
 	UFUNCTION(BlueprintCallable)
     bool FireWeapon();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon)
+	int damage;
 
 protected:
 	// Called when the game starts or when spawned
