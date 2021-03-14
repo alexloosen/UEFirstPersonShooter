@@ -193,7 +193,7 @@ void AMyProjectCPPCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 
 void AMyProjectCPPCharacter::SwitchToWeapon(int index)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Switching to Weapon %i"), index);
+//	UE_LOG(LogTemp, Warning, TEXT("Switching to Weapon %i"), index);
 	switch(index)
 	{
 		case 0:
@@ -207,6 +207,10 @@ void AMyProjectCPPCharacter::SwitchToWeapon(int index)
 		default:
 			break;
 	}
+	if(weapons.IsValidIndex(currentWeapon))
+	{
+		weapons[currentWeapon]->setActive(currentWeapon);		
+	}
 }
 
 void AMyProjectCPPCharacter::OnFire()
@@ -218,15 +222,11 @@ void AMyProjectCPPCharacter::OnFire()
 	{
 		if(weapon != nullptr)
 		{
-			if(weapon->ammo > 0)
-			{
-				weapon->FireWeapon(GetWorld()->GetDeltaSeconds());
-				weapon->ammo--;
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Out of ammo!"));
-			}
+//			weapon->FireWeapon(GetWorld()->GetDeltaSeconds());
+		}
+		else
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("No Weapon equipped!"));
 		}
 	}
 }
@@ -291,7 +291,7 @@ void AMyProjectCPPCharacter::ToggleItemPickup()
 
 float AMyProjectCPPCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	UE_LOG(LogTemp, Warning, TEXT("I'm taking damage, OW!"));
+	//UE_LOG(LogTemp, Warning, TEXT("I'm taking damage, OW!"));
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("OUCH!"));   
 	// Incoming damage is split 2/3 to armor, 1/3 to health
 	float damageToArmor = roundf(DamageAmount * 0.67);
@@ -321,12 +321,12 @@ float AMyProjectCPPCharacter::TakeDamage(float DamageAmount, FDamageEvent const&
 	{
 		health -= DamageAmount;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Health: %i"), (int32)health);
-	UE_LOG(LogTemp, Warning, TEXT("Armor: %i"), (int32)armor);
+	//UE_LOG(LogTemp, Warning, TEXT("Health: %i"), (int32)health);
+	//UE_LOG(LogTemp, Warning, TEXT("Armor: %i"), (int32)armor);
 
 	if(health <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Health depleted!"));
+		//UE_LOG(LogTemp, Warning, TEXT("Health depleted!"));
 	}
 	return DamageAmount;
 }

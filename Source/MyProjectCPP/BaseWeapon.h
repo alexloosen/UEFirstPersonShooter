@@ -43,7 +43,7 @@ public:
 	int ammo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	int reloadTime;
+	float fireRate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon)
 	bool hitscan;
@@ -57,6 +57,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FVector lineTraceHitLocation;
 
+	UFUNCTION(BlueprintCallable)
+    bool FireWeapon();
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -65,7 +69,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void FireWeapon(float DeltaTime);
+	UFUNCTION(BlueprintCallable)
+    bool GetReadyToFire() const { return readyToFire; }
 
+	UFUNCTION(BlueprintCallable)
+    void ToggleReadyToFire() { readyToFire = !readyToFire; }
+
+	UFUNCTION(BlueprintCallable)
+	void setActive(int index);	
+private:
+
+	FTimerHandle handle;
+	bool readyToFire;
+	float lastBulletFired;
 };
