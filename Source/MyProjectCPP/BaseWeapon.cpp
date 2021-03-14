@@ -56,54 +56,58 @@ bool ABaseWeapon::FireWeapon()
 {
 	auto player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	auto playerCharacter = Cast<AMyProjectCPPCharacter>(player);
-	
-	if (hitscan)
+
+	if(ammo > 0)
 	{
-		lineTraceHitLocation = FVector(0.0f, 0.0f, 0.0f);
-		USceneComponent* muzzleLocation = playerCharacter->FP_MuzzleLocation;
-		lineTraceStartPoint = muzzleLocation->GetComponentLocation();
-		FVector cameraForwardVector = playerCharacter->GetFirstPersonCameraComponent()->GetForwardVector();
-		cameraForwardVector *= 5000;
-		lineTraceEndPoint = lineTraceStartPoint + cameraForwardVector;
-
-		FHitResult Outhit;
-		FCollisionQueryParams CollisionParams;
-		bool bHasHit = GetWorld()->LineTraceSingleByChannel(Outhit, lineTraceStartPoint, lineTraceEndPoint,
-		                                                    ECC_Visibility, CollisionParams);
-
-		if (bHasHit)
+		if (hitscan)
 		{
-			FHitResult result;
-			result.Item = damage;
-			Outhit.Actor->ReceiveHit(Outhit.GetComponent(), nullptr, nullptr, 0,
-			                         FVector(0, 0, 0), FVector(0, 0, 0), FVector((float)damage, 0, 0),
-			                         result);
-			lineTraceHitLocation = Outhit.Location;
+			lineTraceHitLocation = FVector(0.0f, 0.0f, 0.0f);
+			USceneComponent* muzzleLocation = playerCharacter->FP_MuzzleLocation;
+			lineTraceStartPoint = muzzleLocation->GetComponentLocation();
+			FVector cameraForwardVector = playerCharacter->GetFirstPersonCameraComponent()->GetForwardVector();
+			cameraForwardVector *= 5000;
+			lineTraceEndPoint = lineTraceStartPoint + cameraForwardVector;
+
+			FHitResult Outhit;
+			FCollisionQueryParams CollisionParams;
+			bool bHasHit = GetWorld()->LineTraceSingleByChannel(Outhit, lineTraceStartPoint, lineTraceEndPoint,
+                                                                ECC_Visibility, CollisionParams);
+
+			if (bHasHit)
+			{
+				FHitResult result;
+				result.Item = damage;
+				Outhit.Actor->ReceiveHit(Outhit.GetComponent(), nullptr, nullptr, 0,
+                                         FVector(0, 0, 0), FVector(0, 0, 0), FVector((float)damage, 0, 0),
+                                         result);
+				lineTraceHitLocation = Outhit.Location;
+			}
 		}
-	}
-	else
-	{
-		UWorld* const World = GetWorld();
-		const FRotator SpawnRotation = playerCharacter->GetControlRotation();
-		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-		//		const FVector SpawnLocation = ((playerCharacter->FP_MuzzleLocation != nullptr) ? playerCharacter->FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-
-		const FVector SpawnLocation = playerCharacter->GetFirstPersonCameraComponent()->GetComponentLocation() +
-			GunOffset;
-		//Set Spawn Collision Handling Override
-		FActorSpawnParameters ActorSpawnParams;
-		ActorSpawnParams.SpawnCollisionHandlingOverride =
-			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
-		// spawn the projectile at the muzzle
-		if (ProjectileClass != nullptr)
+		else
 		{
-			World->SpawnActor<AMyProjectCPPProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-		}
+			UWorld* const World = GetWorld();
+			const FRotator SpawnRotation = playerCharacter->GetControlRotation();
+			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+			//		const FVector SpawnLocation = ((playerCharacter->FP_MuzzleLocation != nullptr) ? playerCharacter->FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+
+			const FVector SpawnLocation = playerCharacter->GetFirstPersonCameraComponent()->GetComponentLocation() +
+                GunOffset;
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride =
+                ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+			// spawn the projectile at the muzzle
+			if (ProjectileClass != nullptr)
+			{
+				World->SpawnActor<AMyProjectCPPProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			}
+		}	
+		ammo--;
+		// weapon can't fire anymore, wait for tick() to update readyToFire to "true"
+		readyToFire = false;
+		lastBulletFired = GetWorld()->TimeSeconds;
+		return true;
 	}
-	ammo--;
-	// weapon can't fire anymore, wait for tick() to update readyToFire to "true"
-	readyToFire = false;
-	lastBulletFired = GetWorld()->TimeSeconds;
-	return true;
+	return false;	
 }
