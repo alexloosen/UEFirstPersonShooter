@@ -45,12 +45,11 @@ AMyProjectCPPCharacter::AMyProjectCPPCharacter()
 	FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
 	FP_Gun->bCastDynamicShadow = false;
 	FP_Gun->CastShadow = false;
-	//FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
-	FP_Gun->SetupAttachment(RootComponent);
+	//FP_Gun->SetupAttachment(RootComponent);
 
 	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
-	FP_MuzzleLocation->SetupAttachment(FP_Gun);
-	FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
+	FP_MuzzleLocation->AttachToComponent(FP_Gun, FAttachmentTransformRules::KeepRelativeTransform, TEXT("FiringSocket"));
+	//FP_MuzzleLocation->SetRelativeLocation(FVector(30.0f, -2.5f, 4.0f));
 
 	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P, FP_Gun, and VR_Gun 
 	// are set in the derived blueprint asset named MyCharacter to avoid direct content references in C++.
@@ -92,6 +91,8 @@ void AMyProjectCPPCharacter::BeginPlay()
 	PitchMax = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax;
 
 	SwitchToWeapon(0);
+	FP_Gun->SetupAttachment(Mesh1P, TEXT("hand_r_weapon"));
+	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules::KeepRelativeTransform, FName("hand_r_weapon"));
 }
 
 void AMyProjectCPPCharacter::Tick(float DeltaSeconds)

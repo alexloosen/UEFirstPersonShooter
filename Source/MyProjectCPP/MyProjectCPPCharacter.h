@@ -43,7 +43,7 @@ protected:
 public:
 
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category=Mesh)
 	USkeletalMeshComponent* Mesh1P;
 
 	/** Gun mesh: 1st person view (seen only by self) */
@@ -51,7 +51,7 @@ public:
 	USkeletalMeshComponent* FP_Gun;
 
 	/** Location on gun mesh where projectiles should spawn. */
-	UPROPERTY(BlueprintReadWrite, Category = Mesh)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
