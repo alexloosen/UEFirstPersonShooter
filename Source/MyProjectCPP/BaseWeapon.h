@@ -26,6 +26,9 @@ public:
 	class UAnimMontage* FiringAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
+	class USoundBase* EquipSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
 	class USoundBase* FiringSound;
 
 	/** Gun muzzle's offset from the characters location */

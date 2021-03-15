@@ -35,8 +35,10 @@ public:
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	/** Returns CollisionComp subobject **/
+	UFUNCTION(BlueprintCallable)
 	UBoxComponent* GetCollisionComp() const { return CollisionComp; }
 	/** Returns ProjectileMovement subobject **/
+	UFUNCTION(BlueprintCallable)
 	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
 
 	UFUNCTION(BlueprintCallable)
