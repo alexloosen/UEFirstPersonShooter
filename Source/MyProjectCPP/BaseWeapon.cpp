@@ -7,6 +7,7 @@
 
 
 #include "MyProjectCPPCharacter.h"
+#include "Algo/Transform.h"
 #include "Engine/World.h"
 #include "Input/Events.h"
 #include "Kismet/GameplayStatics.h"
@@ -19,7 +20,7 @@ ABaseWeapon::ABaseWeapon()
 
 	ammo = 25;
 	// Default offset from the character location for projectiles to spawn
-	GunOffset = FVector(0.0f, 0.0f, -35.0f);
+	GunOffset = FVector(100.0f, 0.0f, -20.0f);
 
 	// weapon is reloaded
 	readyToFire = true;
@@ -89,19 +90,35 @@ bool ABaseWeapon::FireWeapon()
 			UWorld* const World = GetWorld();
 			const FRotator SpawnRotation = playerCharacter->GetControlRotation();
 			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-			//		const FVector SpawnLocation = ((playerCharacter->FP_MuzzleLocation != nullptr) ? playerCharacter->FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+			//const FVector SpawnLocation = ((playerCharacter->FP_MuzzleLocation != nullptr) ? playerCharacter->FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
 
-			const FVector SpawnLocation = playerCharacter->GetFirstPersonCameraComponent()->GetComponentLocation() +
-                GunOffset;
+			//const FVector SpawnLocation = playerCharacter->GetFirstPersonCameraComponent()->GetComponentLocation() + GunOffset;
+			const FTransform SpawnTransform = playerCharacter->GetFirstPersonCameraComponent()->GetComponentTransform();
 			//Set Spawn Collision Handling Override
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.SpawnCollisionHandlingOverride =
-                ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+                ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 			// spawn the projectile at the muzzle
-			if (ProjectileClass != nullptr)
+			if (ProjectileClass == nullptr)
 			{
-				World->SpawnActor<AMyProjectCPPProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+				UE_LOG(LogTemp, Warning, TEXT("Trying to Spawn Projectile!"));
+				AMyProjectCPPProjectile* ProjectileToSpawn = Cast<AMyProjectCPPProjectile>(
+					UGameplayStatics::BeginDeferredActorSpawnFromClass(
+						this, AMyProjectCPPProjectile::StaticClass(), SpawnTransform));
+				
+				if (ProjectileToSpawn != nullptr)
+				{
+					ProjectileToSpawn->Initialize(this->damage);
+					ProjectileToSpawn->SetActorLocation(ProjectileToSpawn->GetActorLocation() + GunOffset);
+					ProjectileToSpawn->SetActorRotation(playerCharacter->GetControlRotation());
+					UE_LOG(LogTemp, Warning, TEXT("Spawning Projectile at: %s"), *ProjectileToSpawn->GetActorLocation().ToString());
+					UE_LOG(LogTemp, Warning, TEXT("With Rotation: %s"), *ProjectileToSpawn->GetActorRotation().ToString());
+					UGameplayStatics::FinishSpawningActor(ProjectileToSpawn, ProjectileToSpawn->GetActorTransform());
+				}
+				//AMyProjectCPPProjectile* proj = new AMyProjectCPPProjectile();
+				//World->SpawnActor<AMyProjectCPPProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+				
 			}
 		}	
 		ammo--;

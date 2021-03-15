@@ -34,6 +34,11 @@ AMyProjectCPPProjectile::AMyProjectCPPProjectile()
 	InitialLifeSpan = 3.0f;
 }
 
+void AMyProjectCPPProjectile::Initialize(int DamageToSet)
+{
+	this->Damage = DamageToSet;
+}
+
 void AMyProjectCPPProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
