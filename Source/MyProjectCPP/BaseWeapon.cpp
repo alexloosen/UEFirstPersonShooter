@@ -81,6 +81,7 @@ bool ABaseWeapon::FireWeapon()
                                          FVector(0, 0, 0), FVector(0, 0, 0), FVector((float)damage, 0, 0),
                                          result);
 				lineTraceHitLocation = Outhit.Location;
+				impactNormal = Outhit.ImpactNormal;
 			}
 		}
 		else

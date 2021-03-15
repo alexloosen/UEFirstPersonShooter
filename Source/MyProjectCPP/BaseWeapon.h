@@ -57,6 +57,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FVector lineTraceHitLocation;
 
+	UPROPERTY(BlueprintReadOnly)
+	FVector impactNormal;
+
 	UFUNCTION(BlueprintCallable)
     bool FireWeapon();
 
