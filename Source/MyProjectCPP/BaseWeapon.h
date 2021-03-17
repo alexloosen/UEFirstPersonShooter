@@ -39,6 +39,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Projectile)
 	TSubclassOf<class AMyProjectCPPProjectile> ProjectileClass;
 
+	/** Secondary Projectile class to spawn */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Projectile)
+	TSubclassOf<class AMyProjectCPPProjectile> SecondaryProjectileClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
 	int maxAmmo;
 	

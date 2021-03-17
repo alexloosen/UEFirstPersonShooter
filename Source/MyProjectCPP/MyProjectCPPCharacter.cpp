@@ -234,60 +234,60 @@ void AMyProjectCPPCharacter::OnFire()
 
 void AMyProjectCPPCharacter::OnAction()
 {
-	if(CurrentItem && !bInspecting)
-	{
-		ToggleItemPickup();
-	}
+	// if(CurrentItem && !bInspecting)
+	// {
+	// 	ToggleItemPickup();
+	// }
 }
 
 void AMyProjectCPPCharacter::OnInspect()
 {
-	if(bHoldingItem)
-	{
-		LastRotation = GetControlRotation();
-		ToggleMovement();
-	}
-	else
-	{
-		bInspecting = true;
-	}
+	// if(bHoldingItem)
+	// {
+	// 	LastRotation = GetControlRotation();
+	// 	ToggleMovement();
+	// }
+	// else
+	// {
+	// 	bInspecting = true;
+	// }
 }
 
 void AMyProjectCPPCharacter::OnInspectReleased()
 {
-	if(bInspecting && bHoldingItem)
-	{
-		GetController()->SetControlRotation(LastRotation);
-		GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax = PitchMax;
-		GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMin = PitchMin;
-		ToggleMovement();
-	}
-	else
-	{
-		bInspecting = false;
-	}
+	// if(bInspecting && bHoldingItem)
+	// {
+	// 	GetController()->SetControlRotation(LastRotation);
+	// 	GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax = PitchMax;
+	// 	GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMin = PitchMin;
+	// 	ToggleMovement();
+	// }
+	// else
+	// {
+	// 	bInspecting = false;
+	// }
 }
 
 void AMyProjectCPPCharacter::ToggleMovement()
 {
-	bCanMove = !bCanMove;
-	bInspecting = !bInspecting;
-	FirstPersonCameraComponent->bUsePawnControlRotation = !FirstPersonCameraComponent->bUsePawnControlRotation;
-	bUseControllerRotationYaw = !bUseControllerRotationYaw;
+//	bCanMove = !bCanMove;
+//	bInspecting = !bInspecting;
+//	FirstPersonCameraComponent->bUsePawnControlRotation = !FirstPersonCameraComponent->bUsePawnControlRotation;
+//	bUseControllerRotationYaw = !bUseControllerRotationYaw;
 }
 
 void AMyProjectCPPCharacter::ToggleItemPickup()
 {
-	if(CurrentItem)
-	{
-		bHoldingItem = !bHoldingItem;
-		CurrentItem->PickUp();
-
-		if(!bHoldingItem)
-		{
-			CurrentItem = NULL;
-		}
-	}
+	// if(CurrentItem)
+	// {
+	// 	bHoldingItem = !bHoldingItem;
+	// 	CurrentItem->PickUp();
+	//
+	// 	if(!bHoldingItem)
+	// 	{
+	// 		CurrentItem = NULL;
+	// 	}
+	// }
 }
 
 float AMyProjectCPPCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
